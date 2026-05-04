@@ -3,6 +3,7 @@ package org.example;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
@@ -17,28 +18,32 @@ public class Main {
             System.out.println("Connecting to database...");
             Connection connection = DriverManager.getConnection(url, user, password);
 
-            // 1. Define the SQL command
-            String sql = "INSERT INTO patients (name, age, ailment) VALUES (?, ?, ?)";
-            // 2. Prepare the statement (this creates the 'pstmt' object)
-            var pstmt = connection.prepareStatment(sql);
-            // 3. Get User Input and Fill the Blanks
-            System.out.println("Enter Patient name:")
+
+            String sql = "INSERT INTO patients (name, age, ailment) VALUES (?, ?, ?)";  //  Define the SQL command
+
+            var pstmt = connection.prepareStatement(sql); //  Prepare the statement (this creates the 'pstmt' object)
+
+            System.out.println("Enter Patient name:")  //  Get User Input and Fill the Blanks
             String userName = myObj.nextLine(); // Read user input
             pstmt.setString(1, userName);
 
             System.out.println("Enter Patient Age:");
-            int userAge = myObj.nextLine(); // Read user Age
+            int userAge = myObj.nextInt(); // Read user Age
             pstmt.setInt(2, userAge); 
 
-            myObj.nextLine(); // "Buffer Clear": Do this after nextInt() so it doesn't skip the next line
+            myObj.nextLine(); // Buffer Clear
 
             System.out.println("Enter Ailment:")
             String userAilment = myObj.nextLine();
             pstmt.setString(3, userAilment);
 
-            System.out.println("--- Success! Connection Established ---");
+            // CRITICAL: This line actually sends the data to MySQL
+            int rowsInserted = pstmt.executeUpdate();
 
-            // This is where you will eventually call your menu or logic
+            if (rowsInserted > 0) {
+                System.out.println("--- Success! Patient added to database ---");
+            }
+            // This is where it calls the menu
 
         } catch (SQLException e) {
             System.out.println("--- Connection Failed ---");
