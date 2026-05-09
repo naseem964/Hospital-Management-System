@@ -20,54 +20,79 @@ public class Main {
             System.out.println("Connecting to database...");
             Connection connection = DriverManager.getConnection(url, user, password);
 
-            //  SQL query to fetch all data
-            String viewSql = "SELECT * FROM patients";
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(viewSql);
+            boolean running = true;
 
-            System.out.println("\n--- Current Patient List --");
-            System.out.printf("%-5s | %-20s | %-5s | %-20%n", "ID", "Name", "Age", "Ailment");
-            System.out.println("------------------------------------------------------------");
+            while (running) {
+                // Show the Menu
+                System.out.println("\n--- Hospital System menu ---");
+                System.out.println("1. View Patients");
+                System.out.println("2. Add Patient");
+                System.out.println("3. Exit");
+                System.out.println("Choose an option: ");
 
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id");
-                String name = resultSet.getString("name");
-                int age = resultSet.getInt("age");
-                String ailment = resultSet.getString("ailment");
+                int choice = myObj.nextInt();
+                myObj.nextLine(); // Buffer Clear
 
-                // Displaying the data in a clean format
-                System.out.printf("%-5d | %-20s | %-5d | %20s%n", id, name, age, ailment);
-            }
+                switch (choice) {
+                    case 1:
+                        //  SQL query to fetch all data
+                        String viewSql = "SELECT * FROM patients";
+                        Statement statement = connection.createStatement();
+                        ResultSet resultSet = statement.executeQuery(viewSql);
 
-            String sql = "INSERT INTO patients (name, age, ailment) VALUES (?, ?, ?)";  //  Define the SQL command
+                        System.out.println("\n--- Current Patient List ---");
+                        System.out.printf("%-5s | %-20s | %-5s | %-20s%n", "ID", "Name", "Age", "Ailment");
+                        System.out.println("------------------------------------------------------------");
 
-            var pstmt = connection.prepareStatement(sql); //  Prepare the statement (this creates the 'pstmt' object)
+                        while (resultSet.next()) {
 
-            System.out.println("Enter Patient name:")  //  Get User Input and Fill the Blanks
-            String userName = myObj.nextLine(); // Read user input
-            pstmt.setString(1, userName);
+                            int id = resultSet.getInt("id");
+                            String name = resultSet.getString("name");
+                            int age = resultSet.getInt("age");
+                            String ailment = resultSet.getString("ailment");
+                            // Displaying the data in a clean format
+                            System.out.printf("%-5d | %-20s | %-5d | %20s%n", id, name, age, ailment);
+                        }
+                        break;
 
-            System.out.println("Enter Patient Age:");
-            int userAge = myObj.nextInt(); // Read user Age
-            pstmt.setInt(2, userAge); 
+                    case 2:
+                        String sql = "INSERT INTO patients (name, age, ailment) VALUES (?, ?, ?)";  //  Define the SQL command
+                        var pstmt = connection.prepareStatement(sql); //  Prepare the statement (this creates the 'pstmt' object)
 
-            myObj.nextLine(); // Buffer Clear
+                        System.out.println("Enter Patient name:");  //  Get User Input and Fill the Blanks
+                        String userName = myObj.nextLine(); // Read user input
+                        pstmt.setString(1, userName);
 
-            System.out.println("Enter Ailment:")
-            String userAilment = myObj.nextLine();
-            pstmt.setString(3, userAilment);
+                        System.out.println("Enter Patient Age:");
+                        int userAge = myObj.nextInt(); // Read user Age
+                        pstmt.setInt(2, userAge);
 
-            // CRITICAL: This line actually sends the data to MySQL
-            int rowsInserted = pstmt.executeUpdate();
+                        myObj.nextLine(); // Buffer Clear
 
-            if (rowsInserted > 0) {
-                System.out.println("--- Success! Patient added to database ---");
-            }
-            // This is where it calls the menu
+                        System.out.println("Enter Ailment:");
+                        String userAilment = myObj.nextLine();
+                        pstmt.setString(3, userAilment);
+
+                        // CRITICAL: This line actually sends the data to MySQL
+                        int rowsInserted = pstmt.executeUpdate();
+                        if (rowsInserted > 0) {
+                            System.out.println("--- Success! Patient added to database ---");
+                        }
+                        break;
+
+                    case 3:
+                        running = false;
+                        System.out.println("exiting system...");
+                        break;
+
+                    default:
+                        System.out.println("Invalid choice. Try again.");
+                } // End of switch
+            } // End of while loop
 
         } catch (SQLException e) {
             System.out.println("--- Connection Failed ---");
             e.printStackTrace();
         }
-    }
-}
+    } // End of main method
+} // End of Main class
