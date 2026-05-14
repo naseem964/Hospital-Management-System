@@ -7,7 +7,14 @@ import java.util.Scanner;
 import java.sql.Statement;
 import java.sql.ResultSet;
 
+
 public class Main {
+    // ui color constants
+    public static final String RED = "\u001B[31m";
+    public static final String ORANGE = "\u001b[33m";
+    public static final String RESET = "\u001B[0m";
+    public static final String BLACK_BG = "\u001b[40m";
+
     public static void main(String[] args) {
         // Connection details
         String url = "jdbc:mysql://localhost:3306/hospital_db";
@@ -23,12 +30,17 @@ public class Main {
             boolean running = true;
 
             while (running) {
-                // Show the Menu
-                System.out.println("\n--- Hospital System menu ---");
-                System.out.println("1. View Patients");
-                System.out.println("2. Add Patient");
-                System.out.println("3. Exit");
-                System.out.println("Choose an option: ");
+                // Show ui menu system
+                System.out.println(ORANGE + "===============================================" + RESET);
+                System.out.println(ORANGE + "|| " + RED + "WARNING : MAGI SYSTEM - PATIENT DARABASE" + ORANGE +" ||" + RESET);
+                System.out.println("===============================================" + RESET);
+                System.out.println(ORANGE + "|| [1] VIEW SUBJECT DATA            ||" + RESET);
+                System.out.println(ORANGE + "|| [2] REGISTER NEW SUBJECT         ||" + RESET);
+                System.out.println(ORANGE + "|| [3] TERMINATE CONNECTION         ||" + RESET);
+                System.out.println(ORANGE + "======================================" + RESET);
+                //Status Alerts
+                System.outprintln(RED + ">>> DATA UPLOAD: COMPLETE" + RESET);
+                System.out,println(ORANGE + ">>> STATUS: PATIENT REGISTERED IN CENTRAL DOGMA" + RESET);
 
                 int choice = myObj.nextInt();
                 myObj.nextLine(); // Buffer Clear
@@ -76,17 +88,19 @@ public class Main {
                         // CRITICAL: This line actually sends the data to MySQL
                         int rowsInserted = pstmt.executeUpdate();
                         if (rowsInserted > 0) {
-                            System.out.println("--- Success! Patient added to database ---");
+                            //  STATUS ALERTS HERE
+                            System.out.println(RED + "\n>>> DATA UPLOAD: COMPLETE" + RESET);
+                            System.out.println(ORANGE + ">>> STATUS: PATIENT REGISTERED IN CENTRAL DOGMA" + RESET);
                         }
                         break;
 
                     case 3:
                         running = false;
-                        System.out.println("exiting system...");
+                        System.out.println(RED + "CONNECTION TERMINATED. LOGGING OUT..." + RESET);
                         break;
 
                     default:
-                        System.out.println("Invalid choice. Try again.");
+                        System.out.println(RED + "INVALID SELECTION. RETRY." + RESET);
                 } // End of switch
             } // End of while loop
 
