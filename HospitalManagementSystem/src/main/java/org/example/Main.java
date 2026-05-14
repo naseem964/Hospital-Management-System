@@ -7,7 +7,6 @@ import java.util.Scanner;
 import java.sql.Statement;
 import java.sql.ResultSet;
 
-
 public class Main {
     // ui color constants
     public static final String RED = "\u001B[31m";
@@ -32,22 +31,21 @@ public class Main {
             while (running) {
                 // Show ui menu system
                 System.out.println(ORANGE + "===============================================" + RESET);
-                System.out.println(ORANGE + "|| " + RED + "WARNING : MAGI SYSTEM - PATIENT DARABASE" + ORANGE +" ||" + RESET);
-                System.out.println("===============================================" + RESET);
+                System.out.println(
+                        ORANGE + "|| " + RED + "WARNING : MAGI SYSTEM - PATIENT DARABASE" + ORANGE + " ||" + RESET);
+                System.out.println(ORANGE + "===============================================" + RESET);
                 System.out.println(ORANGE + "|| [1] VIEW SUBJECT DATA            ||" + RESET);
                 System.out.println(ORANGE + "|| [2] REGISTER NEW SUBJECT         ||" + RESET);
                 System.out.println(ORANGE + "|| [3] TERMINATE CONNECTION         ||" + RESET);
                 System.out.println(ORANGE + "======================================" + RESET);
-                //Status Alerts
-                System.outprintln(RED + ">>> DATA UPLOAD: COMPLETE" + RESET);
-                System.out,println(ORANGE + ">>> STATUS: PATIENT REGISTERED IN CENTRAL DOGMA" + RESET);
+
 
                 int choice = myObj.nextInt();
                 myObj.nextLine(); // Buffer Clear
 
                 switch (choice) {
                     case 1:
-                        //  SQL query to fetch all data
+                        // SQL query to fetch all data
                         String viewSql = "SELECT * FROM patients";
                         Statement statement = connection.createStatement();
                         ResultSet resultSet = statement.executeQuery(viewSql);
@@ -64,14 +62,17 @@ public class Main {
                             String ailment = resultSet.getString("ailment");
                             // Displaying the data in a clean format
                             System.out.printf("%-5d | %-20s | %-5d | %20s%n", id, name, age, ailment);
+                            // Status Alerts
                         }
                         break;
 
                     case 2:
-                        String sql = "INSERT INTO patients (name, age, ailment) VALUES (?, ?, ?)";  //  Define the SQL command
-                        var pstmt = connection.prepareStatement(sql); //  Prepare the statement (this creates the 'pstmt' object)
+                        String sql = "INSERT INTO patients (name, age, ailment) VALUES (?, ?, ?)"; // Define the SQL
+                                                                                                   // command
+                        var pstmt = connection.prepareStatement(sql); // Prepare the statement (this creates the 'pstmt'
+                                                                      // object)
 
-                        System.out.println("Enter Patient name:");  //  Get User Input and Fill the Blanks
+                        System.out.println("Enter Patient name:"); // Get User Input and Fill the Blanks
                         String userName = myObj.nextLine(); // Read user input
                         pstmt.setString(1, userName);
 
@@ -88,7 +89,7 @@ public class Main {
                         // CRITICAL: This line actually sends the data to MySQL
                         int rowsInserted = pstmt.executeUpdate();
                         if (rowsInserted > 0) {
-                            //  STATUS ALERTS HERE
+                            // STATUS ALERTS HERE
                             System.out.println(RED + "\n>>> DATA UPLOAD: COMPLETE" + RESET);
                             System.out.println(ORANGE + ">>> STATUS: PATIENT REGISTERED IN CENTRAL DOGMA" + RESET);
                         }
