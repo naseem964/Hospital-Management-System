@@ -2,6 +2,7 @@ package org.example;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement; // <-- FIX 2: Added this import
 import java.sql.SQLException;
 import java.util.Scanner;
 import java.sql.Statement;
@@ -32,13 +33,13 @@ public class Main {
                 // Show ui menu system
                 System.out.println(ORANGE + "===============================================" + RESET);
                 System.out.println(
-                        ORANGE + "|| " + RED + "WARNING : MAGI SYSTEM - PATIENT DARABASE" + ORANGE + " ||" + RESET);
+                        ORANGE + "|| " + RED + "WARNING : MAGI SYSTEM - PATIENT DATABASE" + ORANGE + " ||" + RESET);
                 System.out.println(ORANGE + "===============================================" + RESET);
                 System.out.println(ORANGE + "|| [1] VIEW SUBJECT DATA            ||" + RESET);
                 System.out.println(ORANGE + "|| [2] REGISTER NEW SUBJECT         ||" + RESET);
                 System.out.println(ORANGE + "|| [3] TERMINATE CONNECTION         ||" + RESET);
+                System.out.println(ORANGE + "|| [4] DISCHARGE SUBJECT            ||" + RESET); // <-- FIX 4: Added to menu
                 System.out.println(ORANGE + "======================================" + RESET);
-
 
                 int choice = myObj.nextInt();
                 myObj.nextLine(); // Buffer Clear
@@ -62,22 +63,19 @@ public class Main {
                             String ailment = resultSet.getString("ailment");
                             // Displaying the data in a clean format
                             System.out.printf("%-5d | %-20s | %-5d | %20s%n", id, name, age, ailment);
-                            // Status Alerts
                         }
                         break;
 
                     case 2:
-                        String sql = "INSERT INTO patients (name, age, ailment) VALUES (?, ?, ?)"; // Define the SQL
-                                                                                                   // command
-                        var pstmt = connection.prepareStatement(sql); // Prepare the statement (this creates the 'pstmt'
-                                                                      // object)
+                        String sql = "INSERT INTO patients (name, age, ailment) VALUES (?, ?, ?)";
+                        var pstmt = connection.prepareStatement(sql);
 
-                        System.out.println("Enter Patient name:"); // Get User Input and Fill the Blanks
-                        String userName = myObj.nextLine(); // Read user input
+                        System.out.println("Enter Patient name:");
+                        String userName = myObj.nextLine();
                         pstmt.setString(1, userName);
 
                         System.out.println("Enter Patient Age:");
-                        int userAge = myObj.nextInt(); // Read user Age
+                        int userAge = myObj.nextInt();
                         pstmt.setInt(2, userAge);
 
                         myObj.nextLine(); // Buffer Clear
@@ -86,10 +84,8 @@ public class Main {
                         String userAilment = myObj.nextLine();
                         pstmt.setString(3, userAilment);
 
-                        // CRITICAL: This line actually sends the data to MySQL
                         int rowsInserted = pstmt.executeUpdate();
                         if (rowsInserted > 0) {
-                            // STATUS ALERTS HERE
                             System.out.println(RED + "\n>>> DATA UPLOAD: COMPLETE" + RESET);
                             System.out.println(ORANGE + ">>> STATUS: PATIENT REGISTERED IN CENTRAL DOGMA" + RESET);
                         }
@@ -98,6 +94,36 @@ public class Main {
                     case 3:
                         running = false;
                         System.out.println(RED + "CONNECTION TERMINATED. LOGGING OUT..." + RESET);
+                        break;
+
+                    case 4:
+                        System.out.println(ORANGE + "\n>>> INITIATING SUBJECT DISCHARGE PROTOCOL..." + RESET);
+                        System.out.print(ORANGE + "ENTER PATIENT ID TO DE-REGISTER: " + RESET);
+
+                        // <-- FIX 1: Changed 'scanner' to 'myObj'
+                        int targetId = myObj.nextInt();
+                        myObj.nextLine(); // Clear the scanner buffer
+
+                        String deleteSql = "DELETE FROM patients WHERE id = ?";
+
+                        try {
+                            // <-- FIX 3: Renamed 'pstmt' to 'deleteStmt' to avoid clashes
+                            PreparedStatement deleteStmt = connection.prepareStatement(deleteSql);
+                            deleteStmt.setInt(1, targetId);
+
+                            int rowsDeleted = deleteStmt.executeUpdate();
+
+                            if (rowsDeleted > 0) {
+                                System.out.println(RED + "\n>>> DATA DELETION: COMPLETE" + RESET);
+                                System.out.println(ORANGE + ">>> STATUS: SUBJECT " + targetId + " PURGED FROM CENTRAL DOGMA" + RESET);
+                            } else {
+                                System.out.println(RED + "\n>>> DATA DELETION: FAILED" + RESET);
+                                System.out.println(ORANGE + ">>> STATUS: NO SUBJECT FOUND WITH ID " + targetId + RESET);
+                            }
+                        } catch (SQLException e) {
+                            System.out.println(RED + ">>> ERROR: SYSTEM FAILURE DURING DISCHARGE" + RESET);
+                            e.printStackTrace();
+                        }
                         break;
 
                     default:
@@ -110,4 +136,4 @@ public class Main {
             e.printStackTrace();
         }
     } // End of main method
-} // End of Main class
+}
