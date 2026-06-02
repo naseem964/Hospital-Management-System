@@ -37,8 +37,9 @@ public class Main {
                 System.out.println(ORANGE + "===============================================" + RESET);
                 System.out.println(ORANGE + "|| [1] VIEW SUBJECT DATA            ||" + RESET);
                 System.out.println(ORANGE + "|| [2] REGISTER NEW SUBJECT         ||" + RESET);
-                System.out.println(ORANGE + "|| [3] TERMINATE CONNECTION         ||" + RESET);
-                System.out.println(ORANGE + "|| [4] DISCHARGE SUBJECT            ||" + RESET); // <-- FIX 4: Added to menu
+                System.out.println(ORANGE + "|| [3] DISCHARGE SUBJECT            ||" + RESET);
+                System.out.println(ORANGE + "|| [4] UPDATE PATIENT RECORD        ||" + RESET);// <-- FIX 4 : Added to menu
+                System.out.println(ORANGE + "|| [5] TERMINATE CONNECTION         ||" + RESET); // <-- FIX: menu in correct order
                 System.out.println(ORANGE + "======================================" + RESET);
 
                 int choice = myObj.nextInt();
@@ -92,11 +93,6 @@ public class Main {
                         break;
 
                     case 3:
-                        running = false;
-                        System.out.println(RED + "CONNECTION TERMINATED. LOGGING OUT..." + RESET);
-                        break;
-
-                    case 4:
                         System.out.println(ORANGE + "\n>>> INITIATING SUBJECT DISCHARGE PROTOCOL..." + RESET);
                         System.out.print(ORANGE + "ENTER PATIENT ID TO DE-REGISTER: " + RESET);
 
@@ -125,9 +121,35 @@ public class Main {
                             e.printStackTrace();
                         }
                         break;
+                    case 4:
+                        String Sql = "UPDATE patients SET ailment = ?, room_number = ? WHERE id = ?"; // Update patients info option.
+                        var update = connection.prepareStatement(Sql);
+
+                        System.out.println("Enter Patient Diagnosis : ");
+                        String userailment = myObj.nextLine();
+                        update.setString(1,userailment);
+
+                        System.out.println("Enter Room_Number : ");
+                        String userRoom_Number = myObj.nextLine();
+                        update.setString(2,userRoom_Number);
+
+                        System.out.println("Enter Patient ID # :");
+                        String userid = myObj.nextLine();
+                        update.setString(3,userid);
+
+                        update.executeUpdate();
+                        update.close();
+
+                        System.out.println("Patient record updated successfully!");
+
+                        break;
+                    case 5:
+                        running = false;
+                        System.out.println(RED + "CONNECTION TERMINATED. LOGGING OUT..." + RESET);
+                        break;
 
                     default:
-                        System.out.println(RED + "INVALID SELECTION. RETRY." + RESET);
+                        System.out.println(RED + "INVALID SELECTION. RETRY." + RESET); // reminder to include  the switch order for case 3&4 and the menu option
                 } // End of switch
             } // End of while loop
 

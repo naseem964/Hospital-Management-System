@@ -6,7 +6,40 @@
       <sourceFolder url="file://$MODULE_DIR$/HospitalManagementSystem/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://C:/Users/nasee/.m2/repository/com/mysql/mysql-connector-j/8.2.0" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://C:/Users/nasee/.m2/repository/com/mysql/mysql-connector-j/8.2.0" />
+        </SOURCES>
+        <jarDirectory url="file://C:/Users/nasee/.m2/repository/com/mysql/mysql-connector-j/8.2.0" recursive="false" />
+        <jarDirectory url="file://C:/Users/nasee/.m2/repository/com/mysql/mysql-connector-j/8.2.0" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="modules" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/HospitalManagementSystem" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/HospitalManagementSystem/src/main/java" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="library" exported="" name="modules" level="project" />
   </component>
 </module>
