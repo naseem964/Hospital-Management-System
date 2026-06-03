@@ -38,8 +38,9 @@ public class Main {
                 System.out.println(ORANGE + "|| [1] VIEW SUBJECT DATA            ||" + RESET);
                 System.out.println(ORANGE + "|| [2] REGISTER NEW SUBJECT         ||" + RESET);
                 System.out.println(ORANGE + "|| [3] DISCHARGE SUBJECT            ||" + RESET);
-                System.out.println(ORANGE + "|| [4] UPDATE PATIENT RECORD        ||" + RESET);// <-- FIX 4 : Added to menu
-                System.out.println(ORANGE + "|| [5] TERMINATE CONNECTION         ||" + RESET); // <-- FIX: menu in correct order
+                System.out.println(ORANGE + "|| [4] UPDATE PATIENT RECORD        ||" + RESET);// <-- FIX  : Added to menu
+                System.out.println(ORANGE + "|| [5] VIEW MEDICAL STAFF           ||" + RESET); // <-- FIX: menu in correct order
+                System.out.println(ORANGE + "|| [6] TERMINATE CONNECTION         ||" + RESET);
                 System.out.println(ORANGE + "======================================" + RESET);
 
                 int choice = myObj.nextInt();
@@ -144,6 +145,31 @@ public class Main {
 
                         break;
                     case 5:
+                        String CLASSIFIED_REGISTRATION_PROTOCOL = "INSERT INTO doctors (name, specialty, status) VALUES (?, ?, ?)";
+                        var magiCoreExecutor = connection.prepareStatement(CLASSIFIED_REGISTRATION_PROTOCOL);
+
+                        System.out.println("IDENTIFY MEDICAL PERSONNEL NAME:");
+                        String personnelName = myObj.nextLine();
+                        magiCoreExecutor.setString(1, personnelName);
+
+                        System.out.println("ENTER ASSIGNED CLINICAL SPECIALTY:");
+                        String clinicalSpecialty = myObj.nextLine();
+                        magiCoreExecutor.setString(2, clinicalSpecialty);
+
+                        System.out.println("ESTABLISH OPERATIONAL STATUS [ON_DUTY / ON_CALL / OFF_DUTY]:");
+                        String operationalStatus = myObj.nextLine();
+                        magiCoreExecutor.setString(3, operationalStatus);
+
+                        // Execution Phase
+                        int protocolExecuted = magiCoreExecutor.executeUpdate();
+                        magiCoreExecutor.close(); // Clean up resource memory
+
+                        if (protocolExecuted > 0) {
+                            System.out.println(RED + "\n>>> MAGI SYSTEM: INJECTION MODULE COMPLETE" + RESET);
+                            System.out.println(ORANGE + ">>> STATUS: PERSONNEL SYNCED WITH CENTRAL DOGMA" + RESET);
+                        }
+                        break;
+                    case 6:
                         running = false;
                         System.out.println(RED + "CONNECTION TERMINATED. LOGGING OUT..." + RESET);
                         break;
