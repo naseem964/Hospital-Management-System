@@ -38,9 +38,11 @@ public class Main {
                 System.out.println(ORANGE + "|| [1] VIEW SUBJECT DATA            ||" + RESET);
                 System.out.println(ORANGE + "|| [2] REGISTER NEW SUBJECT         ||" + RESET);
                 System.out.println(ORANGE + "|| [3] DISCHARGE SUBJECT            ||" + RESET);
-                System.out.println(ORANGE + "|| [4] UPDATE PATIENT RECORD        ||" + RESET);// <-- FIX  : Added to menu
-                System.out.println(ORANGE + "|| [5] VIEW MEDICAL STAFF           ||" + RESET); // <-- FIX: menu in correct order
-                System.out.println(ORANGE + "|| [6] TERMINATE CONNECTION         ||" + RESET);
+                System.out.println(ORANGE + "|| [4] UPDATE PATIENT RECORD        ||" + RESET);// <-- This will print the roster
+                System.out.println(ORANGE + "|| [5] VIEW MEDICAL STAFF           ||" + RESET); // <-- This will be your input code
+                System.out.println(ORANGE + "|| [6] REGISTER MEDICAL PERSONNEL   ||" + RESET);
+                System.out.println(ORANGE + "|| [7] ASSIGN STAFF TO SUBJECT      ||" + RESET);
+                System.out.println(ORANGE + "|| [8] TERMINATE CONNECTION         ||" + RESET);
                 System.out.println(ORANGE + "======================================" + RESET);
 
                 int choice = myObj.nextInt();
@@ -48,24 +50,37 @@ public class Main {
 
                 switch (choice) {
                     case 1:
-                        // SQL query to fetch all data
-                        String viewSql = "SELECT * FROM patients";
+                        // Updated to explicitly select the new columns as well
+                        String viewSql = "SELECT id, name, age, ailment, room_number, doctor_id FROM patients";
                         Statement statement = connection.createStatement();
                         ResultSet resultSet = statement.executeQuery(viewSql);
 
                         System.out.println("\n--- Current Patient List ---");
-                        System.out.printf("%-5s | %-20s | %-5s | %-20s%n", "ID", "Name", "Age", "Ailment");
-                        System.out.println("------------------------------------------------------------");
+                        // Adjusted format layout string to add columns for Room and Staff ID
+                        System.out.printf("%-5s | %-20s | %-5s | %-20s | %-10s | %-10s%n",
+                                "ID", "NAME", "AGE", "AILMENT", "ROOM", "STAFF ID");
+                        System.out.println("-----------------------------------------------------------------------------------------");
 
                         while (resultSet.next()) {
-
                             int id = resultSet.getInt("id");
                             String name = resultSet.getString("name");
                             int age = resultSet.getInt("age");
                             String ailment = resultSet.getString("ailment");
-                            // Displaying the data in a clean format
-                            System.out.printf("%-5d | %-20s | %-5d | %20s%n", id, name, age, ailment);
+                            String roomNumber = resultSet.getString("room_number");
+                            int doctorId = resultSet.getInt("doctor_id");
+
+                            // If a room or doctor hasn't been assigned yet, make it look clean instead of printing 'null' or '0'
+                            String roomDisplay = (roomNumber == null) ? "UNASSIGNED" : roomNumber;
+                            String doctorDisplay = (resultSet.wasNull()) ? "NONE" : String.valueOf(doctorId);
+
+                            // Displays the complete relational row
+                            System.out.printf("%-5d | %-20s | %-5d | %-20s | %-10s | %-10s%n",
+                                    id, name, age, ailment, roomDisplay, doctorDisplay);
                         }
+                        System.out.println("-----------------------------------------------------------------------------------------\n");
+
+                        resultSet.close();
+                        statement.close();
                         break;
 
                     case 2:
@@ -145,6 +160,31 @@ public class Main {
 
                         break;
                     case 5:
+                        String ROSTER_QUERY = "SELECT * FROM doctors";
+                        var rosterExecutor = connection.prepareStatement(ROSTER_QUERY);
+                        var ResultSet = rosterExecutor.executeQuery();
+
+                        System.out.println(ORANGE + "\n========================================================" + RESET);
+                        System.out.println(ORANGE + "||         MAGI SYSTEM: ACTIVE PERSONNEL ROSTER       ||" + RESET);
+                        System.out.println(ORANGE + "========================================================" + RESET);
+                        System.out.println(String.format("%-6s | %-20s | %-15s | %-10s", "ID", "PERSONNEL NAME", "SPECIALTY", "STATUS"));
+                        System.out.println("--------------------------------------------------------");
+
+                        while (ResultSet.next()) {
+                            int id = ResultSet.getInt("id");
+                            String name = ResultSet.getString("name");
+                            String specialty = ResultSet.getString("specialty");
+                            String status = ResultSet.getString("status");
+
+                            // Prints each doctor out in a perfectly aligned row
+                            System.out.println(String.format("%-6d | %-20s | %-15s | %-10s", id, name, specialty, status));
+                        }
+                        System.out.println("--------------------------------------------------------\n");
+
+                        ResultSet.close();
+                        rosterExecutor.close();
+                        break;
+                    case 6:
                         String CLASSIFIED_REGISTRATION_PROTOCOL = "INSERT INTO doctors (name, specialty, status) VALUES (?, ?, ?)";
                         var magiCoreExecutor = connection.prepareStatement(CLASSIFIED_REGISTRATION_PROTOCOL);
 
@@ -169,7 +209,32 @@ public class Main {
                             System.out.println(ORANGE + ">>> STATUS: PERSONNEL SYNCED WITH CENTRAL DOGMA" + RESET);
                         }
                         break;
-                    case 6:
+                    case 7:
+                        String ASSIGNMENT_PROTOCOL = "UPDATE patients SET doctor_id = ? WHERE id = ?";
+                        var assignmentExecutor = connection.prepareStatement(ASSIGNMENT_PROTOCOL);
+
+                        System.out.println("ENTER SUBJECT (PATIENT) ID #:");
+                        int subjectId = myObj.nextInt();
+
+                        System.out.println("ENTER ASSIGNED PERSONNEL (DOCTOR) ID #:");
+                        int staffId = myObj.nextInt();
+                        myObj.nextLine(); // Clear the scanner buffer
+
+                        // Map parameters to SQL query
+                        assignmentExecutor.setInt(1, staffId);
+                        assignmentExecutor.setInt(2, subjectId);
+
+                        int assignmentExecuted = assignmentExecutor.executeUpdate();
+                        assignmentExecutor.close();
+
+                        if (assignmentExecuted > 0) {
+                            System.out.println(RED + "\n>>> MAGI SYSTEM: LINK LAYER ESTABLISHED" + RESET);
+                            System.out.println(ORANGE + ">>> STATUS: SUBJECT " + subjectId + " ASSIGNED TO PERSONNEL " + staffId + RESET);
+                        } else {
+                            System.out.println(RED + "\n>>> ERROR: SUBJECT ID NOT FOUND IN CENTRAL DOGMA" + RESET);
+                        }
+                        break;
+                    case 8:
                         running = false;
                         System.out.println(RED + "CONNECTION TERMINATED. LOGGING OUT..." + RESET);
                         break;
