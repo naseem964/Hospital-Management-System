@@ -1,0 +1,13 @@
+/* Core application layout theme */
+.root {
+    -fx-background-color: #121212; /* Deep modern dark theme flat canvas */
+}
+
+/* Typography control for the landing text */
+.welcome-text {
+    -fx-font-size: 26px;
+    -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0.0, 0, 2);
+}
