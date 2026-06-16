@@ -3,6 +3,10 @@ package org.example;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 public class PatientDAO {
 
@@ -12,17 +16,16 @@ public class PatientDAO {
      * @return true if the database row was created successfully, false otherwise.
      */
     public boolean addPatient(Patient patient) {
-        // FIXED: Updated column name from condition_summary to matching database column 'ailment'
         String sql = "INSERT INTO patients (name, age, ailment) VALUES (?, ?, ?)";
 
         // Use a try-with-resources block to automatically open and close database connections cleanly
         try (Connection conn = DatabaseConnection.getConnecction();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            // FIXED: Aligned parameter targets directly with your Patient.java model fields
+            // FIXED: Aligned parameter targets directly with  Patient.java model fields
             pstmt.setString(1, patient.getName());
             pstmt.setInt(2, patient.getAge());
-            pstmt.setString(3, patient.getAilment()); // Matches your exact getter method name
+            pstmt.setString(3, patient.getAilment()); // Matches  exact getter method name
 
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
@@ -33,4 +36,33 @@ public class PatientDAO {
             return false;
         }
     }
+    public List<Patient> getAllPatients() {
+        List<Patient> patientList = new ArrayList<>();
+        String sql = "SELECT name, age, ailment FROM patients";
+
+        try (Connection conn = DatabaseConnection.getConnecction();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                // Extract values from the database row columns
+                String name = rs.getString("name");
+                int age = rs.getInt("age");
+                String ailment = rs.getString("ailment");
+
+                // Reconstruct the object from persistent data and add it to our array list
+                Patient patient = new Patient(name, age, ailment);
+                patientList.add(patient);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error executing SELECT query inside PatientDAO:");
+            e.printStackTrace();
+        }
+
+        return patientList;
+    }
+
+
 }
+
