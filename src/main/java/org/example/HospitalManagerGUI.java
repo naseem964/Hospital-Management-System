@@ -60,25 +60,31 @@ public class HospitalManagerGUI extends Application {
         );
         root.setLeft(formBox);
 
-        // ==========================================
+// ==========================================
         // 3. RIGHT / CENTER: RELATIONAL DATA GRID
         // ==========================================
         patientTable = new TableView<>();
 
+        //ADDED: Setup an explicit ID column mapped to the new getId() getter
+        TableColumn<Patient, Integer> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(new PropertyValueFactory<>("id")); // looks for getId()
+        idCol.setPrefWidth(60);
+
         // Setup individual grid columns mapped directly to Patient object getters
         TableColumn<Patient, String> nameCol = new TableColumn<>("NAME");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name")); // looks for getName()
-        nameCol.setPrefWidth(250);
+        nameCol.setPrefWidth(220);
 
         TableColumn<Patient, Integer> ageCol = new TableColumn<>("AGE");
         ageCol.setCellValueFactory(new PropertyValueFactory<>("age"));  // looks for getAge()
-        ageCol.setPrefWidth(80);
+        ageCol.setPrefWidth(70);
 
         TableColumn<Patient, String> ailmentCol = new TableColumn<>("AILMENT / DIAGNOSIS");
         ailmentCol.setCellValueFactory(new PropertyValueFactory<>("ailment")); // looks for getAilment()
         ailmentCol.setPrefWidth(350);
 
-        patientTable.getColumns().addAll(nameCol, ageCol, ailmentCol);
+        // MODIFIED: Added idCol to the front of the column insertion sequence
+        patientTable.getColumns().addAll(idCol, nameCol, ageCol, ailmentCol);
         root.setCenter(patientTable);
 
         // ==========================================

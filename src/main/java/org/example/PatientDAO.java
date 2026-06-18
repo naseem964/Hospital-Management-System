@@ -38,20 +38,22 @@ public class PatientDAO {
     }
     public List<Patient> getAllPatients() {
         List<Patient> patientList = new ArrayList<>();
-        String sql = "SELECT name, age, ailment FROM patients";
+        String sql = "SELECT id, name, age, ailment FROM patients";
 
         try (Connection conn = DatabaseConnection.getConnecction();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                // Extract values from the database row columns
+                // ADDED: Extract the auto-increment integer value from the database row
+                int id = rs.getInt("id");
+
                 String name = rs.getString("name");
                 int age = rs.getInt("age");
                 String ailment = rs.getString("ailment");
 
-                // Reconstruct the object from persistent data and add it to our array list
-                Patient patient = new Patient(name, age, ailment);
+                // MODIFIED: Reconstruct the object using our 4-parameter constructor
+                Patient patient = new Patient(id, name, age, ailment);
                 patientList.add(patient);
             }
 

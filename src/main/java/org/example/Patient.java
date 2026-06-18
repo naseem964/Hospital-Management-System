@@ -12,7 +12,15 @@ public class Patient {
         this.ailment = ailment;
     }
 
-    // Getters
+    public Patient(int id, String name, int age, String ailment) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+        this.ailment = ailment;
+    }
+    // Getter for the ID column mapping factory
+    public int getId() { return id; }
+
     public String getName() { return name; }
     public int getAge() { return age; }
     public String getAilment() { return ailment; }
