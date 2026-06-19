@@ -38,6 +38,7 @@ public class PatientDAO {
     }
     public List<Patient> getAllPatients() {
         List<Patient> patientList = new ArrayList<>();
+        // UPDATED: Selecting 'id' to pull down the primary key data map full-stack
         String sql = "SELECT id, name, age, ailment FROM patients";
 
         try (Connection conn = DatabaseConnection.getConnecction();
@@ -53,6 +54,7 @@ public class PatientDAO {
                 String ailment = rs.getString("ailment");
 
                 // MODIFIED: Reconstruct the object using our 4-parameter constructor
+                // Maps persistent database identifiers directly into runtime objects
                 Patient patient = new Patient(id, name, age, ailment);
                 patientList.add(patient);
             }
@@ -64,7 +66,23 @@ public class PatientDAO {
 
         return patientList;
     }
+    /**
+     * Executes a secure SQL DELETE targeting an explicit record row via primary key mapping.
+     */
+    public boolean deletePatient(int id) {
+        String sql = "DELETE FROM patients WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnecction();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-
+            pstmt.setInt(1, id);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("❌ Error executing DELETE query inside PatientDAO:");
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
+
 

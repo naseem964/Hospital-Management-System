@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.util.List;
@@ -16,20 +17,19 @@ import java.util.List;
 public class HospitalManagerGUI extends Application {
 
     // Instantiate our working Data Access Object to talk to MySQL
-    private final PatientDAO patientDAO = new PatientDAO();
-
     // A special JavaFX list that automatically updates the visual table grid when data changes
+    private final PatientDAO patientDAO = new PatientDAO();
     private TableView<Patient> patientTable;
     private ObservableList<Patient> masterDataList;
 
     @Override
     public void start(Stage primaryStage) {
-        // 1. Root Container layout split into sections
+        //  Root Container layout split into sections
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(20));
 
         // ==========================================
-        // 2. LEFT SIDE: REGISTRATION FORM LAYOUT
+        // 1. LEFT SIDE: REGISTRATION FORM LAYOUT
         // ==========================================
         VBox formBox = new VBox(15); // 15px layout spacing between elements
         formBox.setPadding(new Insets(10, 20, 10, 10));
@@ -60,9 +60,12 @@ public class HospitalManagerGUI extends Application {
         );
         root.setLeft(formBox);
 
-// ==========================================
-        // 3. RIGHT / CENTER: RELATIONAL DATA GRID
         // ==========================================
+        // 2. RIGHT / CENTER: RELATIONAL DATA GRID
+        // ==========================================
+        VBox centerBox = new VBox(15);
+        centerBox.setPadding(new Insets(10, 10, 10, 10));
+
         patientTable = new TableView<>();
 
         //ADDED: Setup an explicit ID column mapped to the new getId() getter
@@ -73,22 +76,35 @@ public class HospitalManagerGUI extends Application {
         // Setup individual grid columns mapped directly to Patient object getters
         TableColumn<Patient, String> nameCol = new TableColumn<>("NAME");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name")); // looks for getName()
-        nameCol.setPrefWidth(220);
+        nameCol.setPrefWidth(200);
 
         TableColumn<Patient, Integer> ageCol = new TableColumn<>("AGE");
         ageCol.setCellValueFactory(new PropertyValueFactory<>("age"));  // looks for getAge()
-        ageCol.setPrefWidth(70);
+        ageCol.setPrefWidth(60);
 
         TableColumn<Patient, String> ailmentCol = new TableColumn<>("AILMENT / DIAGNOSIS");
         ailmentCol.setCellValueFactory(new PropertyValueFactory<>("ailment")); // looks for getAilment()
-        ailmentCol.setPrefWidth(350);
+        ailmentCol.setPrefWidth(300);
 
         // MODIFIED: Added idCol to the front of the column insertion sequence
         patientTable.getColumns().addAll(idCol, nameCol, ageCol, ailmentCol);
-        root.setCenter(patientTable);
+
+        // Sub-control panel context menu directly under the grid
+        HBox controlMenu = new HBox(15);
+        controlMenu.setAlignment(Pos.CENTER_RIGHT);
+
+        Button deleteButton = new Button("Delete Selected Patient");
+        deleteButton.setStyle("-fx-background-color: #d9534f; -fx-text-fill: white; -fx-font-weight: bold;");
+        controlMenu.getChildren().add(deleteButton);
+
+        centerBox.getChildren().addAll(patientTable, controlMenu);
+        root.setCenter(centerBox);
+
+        // Populate initial grid data hydration loop
+        refreshTableData();
 
         // ==========================================
-        // 4. DATA PIPELINE LOGIC (INTEGRATION)
+        // 3. DATA PIPELINE LOGIC (INTEGRATION)
         // ==========================================
 
         // Initial Fetch: Read from XAMPP database and fill the visual grid right when it opens
@@ -97,6 +113,7 @@ public class HospitalManagerGUI extends Application {
         // Form Submit Action Loop
         submitBtn.setOnAction(event -> {
             // Grab input strings from text fields
+            try {
             String inputName = nameField.getText().trim();
             String inputAgeStr = ageField.getText().trim();
             String inputAilment = ailmentField.getText().trim();
@@ -107,7 +124,7 @@ public class HospitalManagerGUI extends Application {
                 return;
             }
 
-            try {
+
                 int inputAge = Integer.parseInt(inputAgeStr);
 
                 // Package fields into a real Java Patient object blueprint
@@ -135,8 +152,25 @@ public class HospitalManagerGUI extends Application {
             }
         });
 
+        deleteButton.setOnAction(event -> {
+            // Identify which unique patient object was highlighted in the data matrix grid
+            Patient selectedPatient = patientTable.getSelectionModel().getSelectedItem();
+            if (selectedPatient == null) {
+                System.out.println("⚠ Selection Warning: No patient row was highlighted for execution.");
+                return;
+            }
+
+            // Bind the operation directly to the exposed database primary key
+            if (patientDAO.deletePatient(selectedPatient.getId())) {
+                System.out.println("✅ Record ID " + selectedPatient.getId() + " systematically purged from database.");
+                refreshTableData(); // Force live structural data-binding synchronization loop
+            } else {
+                System.out.println("❌ Persistent layer deletion block error occurred.");
+            }
+        });
+
         // ==========================================
-        // 5. WINDOW CONFIGURATION
+        // 4. DISPLAY INITIALIZATION
         // ==========================================
         Scene scene = new Scene(root, 1024, 768);
         try {
