@@ -118,11 +118,12 @@ public class HospitalManagerGUI extends Application {
             String inputAgeStr = ageField.getText().trim();
             String inputAilment = ailmentField.getText().trim();
 
-            // Simple validation to ensure fields aren't completely blank
-            if (inputName.isEmpty() || inputAgeStr.isEmpty() || inputAilment.isEmpty()) {
-                System.out.println("❌ Form Error: All registration parameters must be populated.");
-                return;
-            }
+
+                if (inputName.isEmpty() || inputAgeStr.isEmpty() || inputAilment.isEmpty()) {
+                    
+                    triggerTerminalIntercept(Alert.AlertType.ERROR, "Synchronization Failure", "All registration parameters must be populated. Blank entries are rejected by the Central Dogma.");
+                    return;
+                }
 
 
                 int inputAge = Integer.parseInt(inputAgeStr);
@@ -148,7 +149,7 @@ public class HospitalManagerGUI extends Application {
                 }
 
             } catch (NumberFormatException e) {
-                System.out.println("❌ Input Validation Failure: Age field must contain a numerical integer.");
+                triggerTerminalIntercept(Alert.AlertType.ERROR, "Data Corruption Detected", "Age field must contain a valid numerical integer. Text strings are strictly prohibited.");
             }
         });
 
@@ -196,5 +197,23 @@ public class HospitalManagerGUI extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+    /**
+     * MAGI SYSTEM COMMAND: Generates a visual terminal intercept alert for the operator.
+     */
+    private void triggerTerminalIntercept(Alert.AlertType alertType, String header, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(alertType == Alert.AlertType.ERROR ? "CRITICAL SYSTEM WARNING" : "MAGI NOTIFICATION");
+        alert.setHeaderText(header);
+        alert.setContentText(message);
+
+        // Applies our dark-theme stylesheet to the pop-up window so it matches the main terminal
+        try {
+            alert.getDialogPane().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        } catch (Exception e) {
+            // Fallback if stylesheet is missing
+        }
+
+        alert.showAndWait();
     }
 }
