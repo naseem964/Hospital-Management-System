@@ -83,6 +83,36 @@ public class PatientDAO {
             return false;
         }
     }
-}
 
+    /**
+     * MAGI SYSTEM COMMAND: Executes a targeted data overwrite on an existing Central Dogma record.
+     */
+    public boolean updatePatient(Patient patient) {
+        // Strict cryptographic targeting via primary key ID
+        String sql = "UPDATE patients SET name = ?, age = ?, ailment = ? WHERE id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnecction();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Binding the updated runtime properties to the SQL placeholders
+            pstmt.setString(1, patient.getName());
+            pstmt.setInt(2, patient.getAge());
+            pstmt.setString(3, patient.getAilment());
+            pstmt.setInt(4, patient.getId()); // The absolute target lock
+
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("\n>>> MAGI SYSTEM: RECORD OVERWRITE SUCCESSFUL");
+                System.out.println(">>> STATUS: SUBJECT ID " + patient.getId() + " RE-SYNCHRONIZED.");
+            }
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.err.println("❌ CRITICAL: MAGI Layer failed to execute overwrite sequence.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+}
 

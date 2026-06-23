@@ -16,22 +16,20 @@ import java.util.List;
 
 public class HospitalManagerGUI extends Application {
 
-    // Instantiate our working Data Access Object to talk to MySQL
-    // A special JavaFX list that automatically updates the visual table grid when data changes
+    // Instantiate our MAGI Data Access Object to talk to the Central Dogma
     private final PatientDAO patientDAO = new PatientDAO();
     private TableView<Patient> patientTable;
     private ObservableList<Patient> masterDataList;
 
     @Override
     public void start(Stage primaryStage) {
-        //  Root Container layout split into sections
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(20));
 
         // ==========================================
         // 1. LEFT SIDE: REGISTRATION FORM LAYOUT
         // ==========================================
-        VBox formBox = new VBox(15); // 15px layout spacing between elements
+        VBox formBox = new VBox(15);
         formBox.setPadding(new Insets(10, 20, 10, 10));
         formBox.setPrefWidth(300);
         formBox.setAlignment(Pos.TOP_LEFT);
@@ -49,15 +47,17 @@ public class HospitalManagerGUI extends Application {
         ailmentField.setPromptText("Identify Clinical Ailment");
 
         Button submitBtn = new Button("Sync to Central Dogma");
-        submitBtn.setMaxWidth(Double.MAX_VALUE); // Full-width button
+        submitBtn.setMaxWidth(Double.MAX_VALUE);
 
-        formBox.getChildren().addAll(
-                sectionLabel,
-                new Label("Patient Name:"), nameField,
-                new Label("Age:"), ageField,
-                new Label("Ailment:"), ailmentField,
-                submitBtn
-        );
+        Button updateButton = new Button("Modify Subject Record");
+        updateButton.setStyle("-fx-background-color: #f0ad4e; -fx-text-fill: white; -fx-font-weight: bold;");
+        updateButton.setMaxWidth(Double.MAX_VALUE);
+
+        // PERFECTLY SYNCED: Variables match exactly what is defined above
+        formBox.getChildren().addAll(sectionLabel, new Label("Name:"), nameField,
+                new Label("Age:"), ageField, new Label("Ailment:"),
+                ailmentField, submitBtn, updateButton);
+
         root.setLeft(formBox);
 
         // ==========================================
@@ -68,28 +68,24 @@ public class HospitalManagerGUI extends Application {
 
         patientTable = new TableView<>();
 
-        //ADDED: Setup an explicit ID column mapped to the new getId() getter
         TableColumn<Patient, Integer> idCol = new TableColumn<>("ID");
-        idCol.setCellValueFactory(new PropertyValueFactory<>("id")); // looks for getId()
+        idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         idCol.setPrefWidth(60);
 
-        // Setup individual grid columns mapped directly to Patient object getters
         TableColumn<Patient, String> nameCol = new TableColumn<>("NAME");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name")); // looks for getName()
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         nameCol.setPrefWidth(200);
 
         TableColumn<Patient, Integer> ageCol = new TableColumn<>("AGE");
-        ageCol.setCellValueFactory(new PropertyValueFactory<>("age"));  // looks for getAge()
+        ageCol.setCellValueFactory(new PropertyValueFactory<>("age"));
         ageCol.setPrefWidth(60);
 
         TableColumn<Patient, String> ailmentCol = new TableColumn<>("AILMENT / DIAGNOSIS");
-        ailmentCol.setCellValueFactory(new PropertyValueFactory<>("ailment")); // looks for getAilment()
+        ailmentCol.setCellValueFactory(new PropertyValueFactory<>("ailment"));
         ailmentCol.setPrefWidth(300);
 
-        // MODIFIED: Added idCol to the front of the column insertion sequence
         patientTable.getColumns().addAll(idCol, nameCol, ageCol, ailmentCol);
 
-        // Sub-control panel context menu directly under the grid
         HBox controlMenu = new HBox(15);
         controlMenu.setAlignment(Pos.CENTER_RIGHT);
 
@@ -100,73 +96,102 @@ public class HospitalManagerGUI extends Application {
         centerBox.getChildren().addAll(patientTable, controlMenu);
         root.setCenter(centerBox);
 
-        // Populate initial grid data hydration loop
         refreshTableData();
 
         // ==========================================
         // 3. DATA PIPELINE LOGIC (INTEGRATION)
         // ==========================================
 
-        // Initial Fetch: Read from XAMPP database and fill the visual grid right when it opens
-        refreshTableData();
+        // --- NEW: MAGI SYSTEM AUTO-FILL LISTENER ---
+        // Auto-fills terminal fields when an operator clicks a row
+        patientTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                nameField.setText(newSelection.getName());
+                ageField.setText(String.valueOf(newSelection.getAge()));
+                ailmentField.setText(newSelection.getAilment());
+            }
+        });
 
-        // Form Submit Action Loop
-        submitBtn.setOnAction(event -> {
-            // Grab input strings from text fields
+        // --- NEW: RECORD MUTATION / UPDATE EXECUTION ---
+        updateButton.setOnAction(event -> {
+            Patient selectedPatient = patientTable.getSelectionModel().getSelectedItem();
+            if (selectedPatient == null) {
+                triggerTerminalIntercept(Alert.AlertType.WARNING, "Target Lock Missing", "You must select a Subject from the grid before initiating an overwrite.");
+                return;
+            }
+
             try {
-            String inputName = nameField.getText().trim();
-            String inputAgeStr = ageField.getText().trim();
-            String inputAilment = ailmentField.getText().trim();
+                String updatedName = nameField.getText().trim();
+                int updatedAge = Integer.parseInt(ageField.getText().trim());
+                String updatedAilment = ailmentField.getText().trim();
 
+                if (updatedName.isEmpty() || updatedAilment.isEmpty()) {
+                    triggerTerminalIntercept(Alert.AlertType.ERROR, "Synchronization Failure", "Text streams cannot be empty during an overwrite.");
+                    return;
+                }
+
+                // Inject the updated data into the runtime object
+                selectedPatient.setName(updatedName);
+                selectedPatient.setAge(updatedAge);
+                selectedPatient.setAilment(updatedAilment);
+
+                // Pass the object to the DAO for permanent Central Dogma modification
+                if (patientDAO.updatePatient(selectedPatient)) {
+                    refreshTableData();
+                    nameField.clear();
+                    ageField.clear();
+                    ailmentField.clear();
+                    triggerTerminalIntercept(Alert.AlertType.INFORMATION, "Overwrite Complete", "Subject data has been successfully re-synchronized.");
+                } else {
+                    triggerTerminalIntercept(Alert.AlertType.ERROR, "Database Rejection", "The Central Dogma rejected the overwrite command.");
+                }
+            } catch (NumberFormatException e) {
+                triggerTerminalIntercept(Alert.AlertType.ERROR, "Data Corruption Detected", "Age field must contain a numerical integer.");
+            }
+        });
+
+        // --- EXISTING: CREATION EXECUTION ---
+        submitBtn.setOnAction(event -> {
+            try {
+                String inputName = nameField.getText().trim();
+                String inputAgeStr = ageField.getText().trim();
+                String inputAilment = ailmentField.getText().trim();
 
                 if (inputName.isEmpty() || inputAgeStr.isEmpty() || inputAilment.isEmpty()) {
-                    
                     triggerTerminalIntercept(Alert.AlertType.ERROR, "Synchronization Failure", "All registration parameters must be populated. Blank entries are rejected by the Central Dogma.");
                     return;
                 }
 
-
                 int inputAge = Integer.parseInt(inputAgeStr);
-
-                // Package fields into a real Java Patient object blueprint
                 Patient newPatient = new Patient(inputName, inputAge, inputAilment);
 
-                // Fire the pipeline execution straight into MySQL
-                boolean isSaved = patientDAO.addPatient(newPatient);
-
-                if (isSaved) {
+                if (patientDAO.addPatient(newPatient)) {
                     System.out.println("✅ Central Dogma updated via GUI input!");
-
-                    // Clear the visual form inputs for the next entry
                     nameField.clear();
                     ageField.clear();
                     ailmentField.clear();
-
-                    // Pull fresh data rows out of MySQL so the table reflects the new insert instantly
                     refreshTableData();
                 } else {
                     System.out.println("❌ Database write rejected by persistence tier.");
                 }
-
             } catch (NumberFormatException e) {
                 triggerTerminalIntercept(Alert.AlertType.ERROR, "Data Corruption Detected", "Age field must contain a valid numerical integer. Text strings are strictly prohibited.");
             }
         });
 
+        // --- EXISTING: PURGE EXECUTION ---
         deleteButton.setOnAction(event -> {
-            // Identify which unique patient object was highlighted in the data matrix grid
             Patient selectedPatient = patientTable.getSelectionModel().getSelectedItem();
             if (selectedPatient == null) {
-                System.out.println("⚠ Selection Warning: No patient row was highlighted for execution.");
+                triggerTerminalIntercept(Alert.AlertType.WARNING, "Selection Warning", "No subject row was highlighted for execution.");
                 return;
             }
 
-            // Bind the operation directly to the exposed database primary key
             if (patientDAO.deletePatient(selectedPatient.getId())) {
                 System.out.println("✅ Record ID " + selectedPatient.getId() + " systematically purged from database.");
-                refreshTableData(); // Force live structural data-binding synchronization loop
+                refreshTableData();
             } else {
-                System.out.println("❌ Persistent layer deletion block error occurred.");
+                triggerTerminalIntercept(Alert.AlertType.ERROR, "Purge Failure", "Persistent layer deletion block error occurred.");
             }
         });
 
@@ -180,15 +205,11 @@ public class HospitalManagerGUI extends Application {
             System.out.println("CSS Style sheet not found yet, running default layout configuration.");
         }
 
-        primaryStage.setTitle("HMS Relational Database Interface");
+        primaryStage.setTitle("MAGI System Interface - Subject Tracking");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    /**
-     * Executes a background database read loop, updates the master list collection,
-     * and refreshes the live data grid view dynamically.
-     */
     private void refreshTableData() {
         List<Patient> currentDbList = patientDAO.getAllPatients();
         masterDataList = FXCollections.observableArrayList(currentDbList);
@@ -198,6 +219,7 @@ public class HospitalManagerGUI extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
     /**
      * MAGI SYSTEM COMMAND: Generates a visual terminal intercept alert for the operator.
      */
@@ -207,7 +229,6 @@ public class HospitalManagerGUI extends Application {
         alert.setHeaderText(header);
         alert.setContentText(message);
 
-        // Applies our dark-theme stylesheet to the pop-up window so it matches the main terminal
         try {
             alert.getDialogPane().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         } catch (Exception e) {
