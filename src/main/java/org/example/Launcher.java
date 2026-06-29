@@ -1,24 +1,22 @@
 package org.example;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class Launcher {
-    public static void main(String[] args)  {
-        System.out.println("Initializing system components....");
+    public static void main(String[] args) {
+        System.out.println("[CORE] Initializing MAGI system...");
 
-// 1. Create a dummy patient object using your existing Patient constructor
-        // Adjust parameters to match your exact Patient.java constructor fields (e.g., Name, Age, Condition)
-        Patient testPatient = new Patient("John Doe", 34, "Sync Ratio Dissociation");
+        try {
+            // Verify DAO exists to satisfy compiler checks
+            PatientDAO patientDAO = new PatientDAO();
+            System.out.println("[DAO] Data Access Object layer bound. Variable status: " + patientDAO.toString());
 
-        // 2. Instantiate the Data Access Object and fire the query
-        PatientDAO patientDAO = new PatientDAO();
-        System.out.println("🔄 Sending test data to MySQL...");
+            // Hand off to JavaFX
+            HospitalManagerGUI.launch(HospitalManagerGUI.class, args);
 
-        if (patientDAO.addPatient(testPatient)) {
-            System.out.println("✅ Success! John Doe was written to the MySQL 'patients' table.");
-        } else {
-            System.out.println("❌ Failed to write test patient to database.");
+        } catch (Exception e) {
+            Logger.getLogger(Launcher.class.getName()).log(Level.SEVERE, "System boot failed", e);
         }
-
-        // Boot up the visual interface layout
-        HospitalManagerGUI.main(args);
     }
 }
